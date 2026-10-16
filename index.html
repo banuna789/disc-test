@@ -1,0 +1,570 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trắc nghiệm DISC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Làm bài trắc nghiệm tính cách DISC miễn phí bằng tiếng Việt: 30 câu hỏi, có kết quả và giải thích chi tiết.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column; the DISC quadrant (task/people × fast/careful) is the recurring visual anchor */
+:root {
+  --bg: #F2F4F7;
+  --surface: #FFFFFF;
+  --fg: #162033;
+  --muted: #5A6477;
+  --line: #DCE1E9;
+  --ink: #162033;
+  --ink-fg: #FFFFFF;
+  --d: #CF4430;
+  --i: #D99211;
+  --s: #24935F;
+  --c: #2E66CF;
+  --d-soft: #FBE7E3;
+  --i-soft: #FBF0D9;
+  --s-soft: #DFF2E8;
+  --c-soft: #E1EAFA;
+  --display: "Bricolage Grotesque", "Be Vietnam Pro", system-ui, sans-serif;
+  --body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #10151F; --surface: #19202D; --fg: #E8ECF3; --muted: #A0AABB; --line: #2C3546;
+    --ink: #E8ECF3; --ink-fg: #10151F;
+    --d: #F0705C; --i: #F2B544; --s: #4CC48C; --c: #6C9BF5;
+    --d-soft: #3A211E; --i-soft: #372C15; --s-soft: #17332A; --c-soft: #1B2944;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #10151F; --surface: #19202D; --fg: #E8ECF3; --muted: #A0AABB; --line: #2C3546;
+  --ink: #E8ECF3; --ink-fg: #10151F;
+  --d: #F0705C; --i: #F2B544; --s: #4CC48C; --c: #6C9BF5;
+  --d-soft: #3A211E; --i-soft: #372C15; --s-soft: #17332A; --c-soft: #1B2944;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+.wrap { max-width: 720px; margin: 0 auto; padding-block: 32px 64px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 7vw, 3.4rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.5rem, 4.5vw, 2rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.eyebrow { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 16px; }
+.stack-lg { display: flex; flex-direction: column; gap: 28px; }
+
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 28px; }
+.brand { font-family: var(--display); font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+.brand .dots { display: grid; grid-template-columns: 8px 8px; gap: 2px; }
+.brand .dots i { width: 8px; height: 8px; border-radius: 2px; display: block; }
+
+.btn {
+  font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px;
+  padding: 12px 22px; border: 1.5px solid var(--ink); background: var(--ink); color: var(--ink-fg);
+  transition: transform .12s ease, opacity .12s ease;
+}
+.btn:hover { transform: translateY(-1px); }
+.btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn.small { padding: 8px 14px; font-size: 0.9rem; }
+.btn:focus-visible, .opt:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+
+/* Intro */
+.hero { display: grid; grid-template-columns: 1fr 240px; gap: 32px; align-items: center; }
+.hero .lead { font-size: 1.08rem; color: var(--muted); max-width: 46ch; }
+.quad-svg { width: 100%; max-width: 260px; height: auto; display: block; margin: 0 auto; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.facts div { background: var(--surface); padding: 14px 16px; }
+.facts b { font-family: var(--display); font-size: 1.5rem; display: block; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.facts span { font-size: 0.85rem; color: var(--muted); }
+.types { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.type-chip { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); }
+.letter { font-family: var(--display); font-weight: 800; font-size: 1.3rem; width: 40px; height: 40px; flex: none; border-radius: 10px; display: grid; place-items: center; color: var(--ink-fg); }
+.type-chip p { font-size: 0.9rem; color: var(--muted); }
+.type-chip strong { display: block; color: var(--fg); }
+.howto { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+.howto ul { margin: 8px 0 0; padding-left: 20px; }
+.howto li { margin-block: 4px; }
+
+/* Quiz */
+.progress { display: grid; grid-template-columns: repeat(30, 1fr); gap: 3px; }
+.progress i { height: 6px; border-radius: 3px; background: var(--line); display: block; }
+.progress i.done { background: var(--fg); }
+.progress i.cur { background: var(--muted); }
+.qmeta { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 0.9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.qtext { font-size: clamp(1.35rem, 4.2vw, 1.75rem); }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt {
+  font: inherit; text-align: left; cursor: pointer; width: 100%;
+  display: flex; gap: 14px; align-items: center;
+  padding: 16px 18px; border-radius: 14px; border: 1.5px solid var(--line);
+  background: var(--surface); color: var(--fg); transition: border-color .12s, transform .12s;
+}
+.opt:hover { border-color: var(--muted); transform: translateX(2px); }
+.opt .k { font-size: 0.8rem; font-weight: 600; width: 26px; height: 26px; flex: none; border-radius: 50%; border: 1.5px solid var(--line); display: grid; place-items: center; color: var(--muted); }
+.opt.sel { border-color: var(--fg); box-shadow: inset 0 0 0 1px var(--fg); }
+.opt.sel .k { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.hint { font-size: 0.85rem; color: var(--muted); }
+
+/* Result */
+.result-head { display: grid; grid-template-columns: 1fr 220px; gap: 28px; align-items: center; }
+.big-type { display: flex; align-items: center; gap: 16px; }
+.big-type .letter { width: 72px; height: 72px; font-size: 2.6rem; border-radius: 18px; }
+.bars { display: flex; flex-direction: column; gap: 10px; }
+.bar { display: grid; grid-template-columns: 110px 1fr 48px; gap: 12px; align-items: center; font-size: 0.92rem; }
+.bar .track { height: 12px; background: var(--line); border-radius: 6px; overflow: hidden; }
+.bar .fill { height: 100%; border-radius: 6px; transition: width .8s cubic-bezier(.2,.8,.2,1); }
+.bar b { text-align: right; font-variant-numeric: tabular-nums; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 22px; }
+.panel.tint { border: 0; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.grid2 > * { min-width: 0; }
+.list { margin: 0; padding-left: 20px; }
+.list li { margin-block: 5px; }
+.tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag { font-size: 0.85rem; padding: 4px 12px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); }
+.others { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.others .panel { padding: 16px; }
+.others p { font-size: 0.9rem; color: var(--muted); }
+.note { font-size: 0.85rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 16px; }
+.toast { font-size: 0.9rem; color: var(--s); }
+.shared-banner { background: var(--c-soft); border-radius: 12px; padding: 12px 16px; font-size: 0.95rem; }
+
+.screen { animation: rise .35s ease both; }
+@keyframes rise { from { transform: translateY(8px); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .screen { animation: none; } .bar .fill { transition: none; } .opt, .btn { transition: none; } }
+
+@media (max-width: 640px) {
+  .hero, .result-head { grid-template-columns: 1fr; }
+  .hero .quad-svg { max-width: 200px; order: -1; margin: 0; }
+  .result-head .quad-svg { max-width: 220px; }
+  .types, .grid2, .others { grid-template-columns: 1fr; }
+  .facts { grid-template-columns: repeat(3, 1fr); }
+  .bar { grid-template-columns: 92px 1fr 44px; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app" aria-live="polite"></div>
+
+<script>
+const TYPES = {
+  D: {
+    name: "Thống trị", en: "Dominance", nick: "Người tiên phong",
+    color: "var(--d)", soft: "var(--d-soft)",
+    short: "Quyết đoán, hướng kết quả, thích thử thách.",
+    summary: "Bạn là người hành động nhanh, tập trung vào mục tiêu và không ngại đối mặt với khó khăn. Bạn thích nắm quyền kiểm soát, ra quyết định và nhìn thấy kết quả cụ thể. Với bạn, hiệu quả quan trọng hơn sự rườm rà. Khi mọi người còn đang bàn bạc, bạn thường đã bắt tay vào làm.",
+    keywords: ["Quyết đoán", "Thẳng thắn", "Cạnh tranh", "Tự tin", "Hướng kết quả", "Dám chấp nhận rủi ro"],
+    strengths: ["Ra quyết định nhanh, kể cả khi thông tin chưa đầy đủ", "Dám nhận trách nhiệm và dẫn dắt khi tình huống khó", "Đặt mục tiêu cao và kiên quyết theo đuổi", "Giải quyết vấn đề trực diện, không vòng vo"],
+    weaknesses: ["Dễ thiếu kiên nhẫn với người chậm hơn mình", "Đôi khi quá thẳng, làm người khác tổn thương", "Có thể bỏ qua chi tiết và cảm xúc của người xung quanh", "Khó ủy quyền thật sự vì muốn kiểm soát"],
+    motivation: "Thử thách, quyền tự chủ, cơ hội thăng tiến và kết quả nhìn thấy được.",
+    fear: "Bị lợi dụng, mất quyền kiểm soát hoặc bị xem là yếu kém.",
+    stress: "Trở nên nóng nảy, áp đặt, ra lệnh nhiều hơn và ít lắng nghe.",
+    environment: "Nhịp độ nhanh, có mục tiêu rõ ràng, được tự quyết cách làm và ít thủ tục rườm rà.",
+    howto: ["Nói ngắn gọn, đi thẳng vào vấn đề", "Tập trung vào kết quả và giải pháp, không than phiền", "Đưa ra lựa chọn để họ quyết định", "Tôn trọng thời gian của họ"],
+    careers: ["Quản lý, giám đốc", "Khởi nghiệp", "Kinh doanh, phát triển thị trường", "Quản lý dự án", "Luật sư tranh tụng", "Chỉ huy, điều hành sản xuất"],
+    growth: ["Tập lắng nghe hết ý người khác trước khi phản hồi", "Hỏi thêm một câu “Bạn thấy sao?” trước khi chốt", "Chậm lại một nhịp với các quyết định ảnh hưởng nhiều người", "Ghi nhận công sức của đồng đội, không chỉ kết quả"]
+  },
+  I: {
+    name: "Ảnh hưởng", en: "Influence", nick: "Người truyền cảm hứng",
+    color: "var(--i)", soft: "var(--i-soft)",
+    short: "Nhiệt tình, hòa đồng, giỏi thuyết phục.",
+    summary: "Bạn là người cởi mở, giàu năng lượng và có sức hút tự nhiên. Bạn thích giao tiếp, kết nối và tạo không khí vui vẻ cho mọi người. Bạn nhìn mọi việc bằng con mắt lạc quan, có nhiều ý tưởng mới và giỏi truyền cảm hứng cho người khác cùng hành động.",
+    keywords: ["Nhiệt tình", "Lạc quan", "Hòa đồng", "Sáng tạo", "Thuyết phục", "Biểu cảm"],
+    strengths: ["Giao tiếp tốt, dễ tạo thiện cảm và mở rộng quan hệ", "Truyền năng lượng tích cực, động viên tinh thần nhóm", "Nhiều ý tưởng, thích nghi nhanh với cái mới", "Giỏi trình bày và thuyết phục"],
+    weaknesses: ["Dễ mất tập trung, bắt đầu nhiều việc nhưng khó theo đến cùng", "Có thể bỏ qua chi tiết và quy trình", "Đôi khi hứa nhiều hơn khả năng thực hiện", "Nhạy cảm với việc bị từ chối hoặc phê bình"],
+    motivation: "Sự công nhận, được yêu mến, làm việc cùng mọi người và môi trường vui vẻ.",
+    fear: "Bị từ chối, bị phớt lờ hoặc mất đi sự yêu mến của người khác.",
+    stress: "Nói nhiều hơn, cảm xúc thất thường, thiếu tổ chức và dễ bỏ dở.",
+    environment: "Cởi mở, thân thiện, nhiều tương tác, được tự do sáng tạo và được ghi nhận.",
+    howto: ["Thân thiện, dành chút thời gian trò chuyện trước khi vào việc", "Khen ngợi và ghi nhận ý tưởng của họ", "Giúp họ chốt việc cụ thể bằng văn bản", "Tránh quá nhiều số liệu khô khan cùng lúc"],
+    careers: ["Marketing, truyền thông", "Bán hàng, chăm sóc khách hàng", "Tổ chức sự kiện", "MC, diễn giả, đào tạo", "Nhân sự, tuyển dụng", "Sáng tạo nội dung"],
+    growth: ["Ghi chép và theo dõi các cam kết đã hứa", "Hoàn thành một việc trước khi bắt đầu việc mới", "Dành thời gian kiểm tra lại chi tiết", "Lắng nghe nhiều hơn nói trong các cuộc thảo luận"]
+  },
+  S: {
+    name: "Kiên định", en: "Steadiness", nick: "Người ủng hộ",
+    color: "var(--s)", soft: "var(--s-soft)",
+    short: "Điềm tĩnh, kiên nhẫn, đáng tin cậy.",
+    summary: "Bạn là người ôn hòa, kiên nhẫn và luôn đặt sự hài hòa lên hàng đầu. Bạn là chỗ dựa vững chắc cho gia đình, bạn bè và đồng nghiệp. Bạn thích sự ổn định, làm việc đều đặn và chu đáo, sẵn sàng giúp đỡ người khác mà không cần được chú ý.",
+    keywords: ["Kiên nhẫn", "Trung thành", "Điềm tĩnh", "Biết lắng nghe", "Hợp tác", "Đáng tin cậy"],
+    strengths: ["Lắng nghe tốt, thấu hiểu và hỗ trợ người khác", "Bền bỉ, làm việc ổn định và có trách nhiệm", "Giữ hòa khí, gắn kết tập thể", "Trung thành và đáng tin cậy lâu dài"],
+    weaknesses: ["Ngại thay đổi, cần nhiều thời gian để thích nghi", "Khó nói “không”, dễ nhận quá nhiều việc", "Né tránh xung đột, giữ cảm xúc trong lòng", "Đôi khi thiếu quyết đoán, chần chừ khi phải chọn"],
+    motivation: "Sự ổn định, an toàn, được tin tưởng và môi trường hòa thuận.",
+    fear: "Mất ổn định, thay đổi đột ngột, xung đột và làm người khác thất vọng.",
+    stress: "Im lặng, thu mình, chiều theo người khác dù không đồng ý, có thể âm thầm bực bội.",
+    environment: "Ổn định, có kế hoạch rõ ràng, đồng nghiệp thân thiện và được báo trước khi có thay đổi.",
+    howto: ["Thể hiện sự quan tâm chân thành", "Báo trước và giải thích lý do khi có thay đổi", "Hỏi ý kiến họ một cách riêng tư, nhẹ nhàng", "Tránh thúc ép hoặc gây áp lực đột ngột"],
+    careers: ["Giáo viên, tư vấn tâm lý", "Y tá, điều dưỡng, chăm sóc sức khỏe", "Hành chính, nhân sự", "Chăm sóc khách hàng", "Kế toán, văn phòng", "Công tác xã hội"],
+    growth: ["Tập nói “không” một cách lịch sự khi đã quá tải", "Chia sẻ quan điểm thật của mình, kể cả khi khác người khác", "Xem thay đổi là cơ hội học hỏi, bắt đầu từ thay đổi nhỏ", "Đặt hạn chót cho bản thân khi cần ra quyết định"]
+  },
+  C: {
+    name: "Tuân thủ", en: "Conscientiousness", nick: "Người phân tích",
+    color: "var(--c)", soft: "var(--c-soft)",
+    short: "Cẩn thận, logic, coi trọng chất lượng.",
+    summary: "Bạn là người tư duy logic, cẩn trọng và có tiêu chuẩn cao. Bạn coi trọng sự chính xác, dữ liệu và quy trình. Trước khi hành động, bạn muốn hiểu rõ vấn đề và cân nhắc mọi khả năng. Bạn tự hào khi làm ra sản phẩm chất lượng, đúng và đủ.",
+    keywords: ["Chính xác", "Logic", "Cẩn thận", "Có hệ thống", "Tiêu chuẩn cao", "Khách quan"],
+    strengths: ["Phân tích sâu, phát hiện vấn đề mà người khác bỏ sót", "Làm việc có hệ thống, có kế hoạch rõ ràng", "Đảm bảo chất lượng và độ chính xác", "Ra quyết định dựa trên dữ liệu, ít cảm tính"],
+    weaknesses: ["Dễ cầu toàn, mất nhiều thời gian cho chi tiết", "Có thể chậm ra quyết định vì muốn chắc chắn", "Khắt khe với bản thân và người khác", "Đôi khi khó bày tỏ cảm xúc, bị xem là lạnh lùng"],
+    motivation: "Sự chính xác, kiến thức chuyên môn, tiêu chuẩn rõ ràng và thời gian để làm tốt.",
+    fear: "Bị chỉ trích vì sai sót, làm việc thiếu chuẩn mực hoặc trong hỗn loạn.",
+    stress: "Trở nên khép kín, soi lỗi nhiều hơn, phân tích quá mức và trì hoãn quyết định.",
+    environment: "Có quy trình rõ ràng, yêu cầu cụ thể, được làm việc tập trung và có đủ thông tin.",
+    howto: ["Chuẩn bị kỹ, đưa ra dữ liệu và bằng chứng", "Trả lời câu hỏi của họ một cách cụ thể", "Cho họ thời gian suy nghĩ trước khi quyết định", "Tránh hứa hẹn mơ hồ hoặc cảm tính"],
+    careers: ["Kỹ sư, lập trình viên", "Kế toán, kiểm toán, tài chính", "Phân tích dữ liệu", "Nghiên cứu khoa học", "Kiểm soát chất lượng (QA/QC)", "Pháp chế, dược sĩ"],
+    growth: ["Chấp nhận “đủ tốt” thay vì hoàn hảo khi thời gian có hạn", "Ra quyết định với 80% thông tin trong các việc ít rủi ro", "Chủ động chia sẻ cảm xúc và ghi nhận người khác", "Góp ý kèm theo lời động viên"]
+  }
+};
+
+const COMBOS = {
+  DI: { name: "Người khởi xướng", text: "Bạn kết hợp sự quyết đoán của D với sức thuyết phục của I. Bạn nhìn thấy cơ hội nhanh, dám hành động và lôi kéo được người khác theo mình. Bạn hợp với vai trò dẫn dắt thay đổi, mở thị trường, khởi nghiệp. Hãy để ý đến chi tiết và sự kiên nhẫn với người khác." },
+  DS: { name: "Người thực thi bền bỉ", text: "Bạn có quyết tâm hướng kết quả của D nhưng vẫn giữ được sự điềm tĩnh, kiên trì của S. Bạn làm việc chăm chỉ, đặt mục tiêu rõ và theo đến cùng mà không gây xáo trộn. Hãy chú ý chia sẻ suy nghĩ nhiều hơn và linh hoạt khi kế hoạch thay đổi." },
+  DC: { name: "Người kiến tạo", text: "Bạn kết hợp sự quyết đoán của D với tư duy phân tích của C. Bạn đặt tiêu chuẩn cao cho cả kết quả lẫn chất lượng, thích giải quyết vấn đề phức tạp một cách logic. Hãy để ý đến cảm xúc của người khác, vì bạn có thể bị xem là khắt khe." },
+  IS: { name: "Người kết nối", text: "Bạn có sự ấm áp, hòa đồng của I và sự chu đáo, tận tâm của S. Bạn là người mà ai cũng muốn làm việc cùng: biết lắng nghe, biết động viên, giỏi giữ gìn các mối quan hệ. Hãy luyện sự quyết đoán và dám nói thẳng khi cần." },
+  IC: { name: "Người cố vấn", text: "Bạn kết hợp khả năng giao tiếp của I với sự kỹ lưỡng của C. Bạn vừa có thể trình bày lôi cuốn, vừa có nền tảng dữ liệu vững chắc. Bạn hợp với vai trò tư vấn, đào tạo, phân tích có yếu tố trình bày. Đôi khi bạn sẽ thấy giằng co giữa cảm hứng và sự cẩn trọng." },
+  SC: { name: "Người chuyên gia tận tụy", text: "Bạn có sự ổn định, kiên nhẫn của S và sự chính xác của C. Bạn làm việc cẩn thận, đáng tin cậy, theo quy trình và rất ít sai sót. Bạn là nền móng vững chắc của bất kỳ tổ chức nào. Hãy thử thách bản thân với những thay đổi và chủ động hơn trong việc thể hiện ý kiến." }
+};
+
+// Each question: context + 4 statements in D, I, S, C order (display order is shuffled per question)
+const QUESTIONS = [
+  ["Khi làm việc nhóm, tôi thường là người…", ["đứng ra quyết định và phân công việc", "khuấy động không khí, kết nối mọi người", "hỗ trợ, lắng nghe và giữ hòa khí", "kiểm tra chi tiết, đảm bảo đúng quy trình"]],
+  ["Khi gặp một vấn đề khó, tôi…", ["lao vào giải quyết ngay, chấp nhận rủi ro", "bàn với nhiều người để tìm ý tưởng", "bình tĩnh, làm từng bước chắc chắn", "phân tích kỹ thông tin trước khi hành động"]],
+  ["Người khác thường nhận xét tôi là người…", ["quyết đoán, thẳng thắn", "vui vẻ, nhiệt tình", "hiền hòa, đáng tin cậy", "cẩn thận, logic"]],
+  ["Điều khiến tôi khó chịu nhất là…", ["sự chậm chạp, thiếu hiệu quả", "bị phớt lờ hoặc bị cô lập", "xung đột và những thay đổi đột ngột", "sai sót và sự cẩu thả"]],
+  ["Khi nhận một dự án mới, điều tôi quan tâm đầu tiên là…", ["mục tiêu và kết quả cần đạt", "những ai sẽ cùng tham gia", "kế hoạch triển khai có ổn định không", "yêu cầu và tiêu chuẩn cụ thể"]],
+  ["Trong một cuộc họp, tôi thường…", ["đi thẳng vào vấn đề và chốt nhanh", "chia sẻ nhiều ý tưởng, kể chuyện", "lắng nghe, ít khi ngắt lời người khác", "đặt câu hỏi để làm rõ chi tiết"]],
+  ["Khi phải ra quyết định quan trọng, tôi dựa vào…", ["trực giác và mục tiêu cuối cùng", "cảm nhận và ý kiến của mọi người", "lựa chọn an toàn, đã được kiểm chứng", "số liệu và phân tích khách quan"]],
+  ["Một ngày cuối tuần lý tưởng với tôi là…", ["thử thách bản thân với một hoạt động mới", "đi chơi, gặp gỡ bạn bè thật đông vui", "thư giãn ở nhà cùng gia đình", "đọc sách, tìm hiểu một chủ đề yêu thích"]],
+  ["Khi bị áp lực, tôi có xu hướng…", ["nóng vội và ra lệnh nhiều hơn", "nói nhiều hơn, dễ mất tập trung", "im lặng, chịu đựng một mình", "khắt khe hơn, soi lỗi nhiều hơn"]],
+  ["Tôi có động lực nhất khi…", ["được trao quyền và có thử thách lớn", "được công nhận và khen ngợi", "được làm việc trong môi trường ổn định, hòa thuận", "được làm đúng và làm chất lượng cao"]],
+  ["Cách tôi giao tiếp thường là…", ["ngắn gọn, thẳng vào trọng tâm", "sôi nổi, nhiều cảm xúc", "nhẹ nhàng, kiên nhẫn", "chính xác, có dẫn chứng"]],
+  ["Khi có thay đổi lớn ở nơi làm việc, tôi…", ["xem đó là cơ hội để bứt phá", "hào hứng với điều mới mẻ", "cần thời gian để thích nghi", "muốn hiểu rõ lý do và kế hoạch cụ thể"]],
+  ["Điểm mạnh lớn nhất của tôi là…", ["dám nghĩ dám làm", "truyền cảm hứng cho người khác", "kiên trì và trung thành", "tỉ mỉ, có hệ thống"]],
+  ["Điều tôi sợ nhất là…", ["mất quyền kiểm soát", "không được mọi người yêu mến", "mất sự ổn định, an toàn", "bị chỉ trích vì làm sai"]],
+  ["Khi tranh luận, tôi…", ["bảo vệ quan điểm của mình đến cùng", "thuyết phục bằng sự nhiệt tình", "nhường nhịn để giữ hòa khí", "đưa ra lập luận và bằng chứng"]],
+  ["Với các quy định, tôi nghĩ…", ["có thể linh động vượt qua nếu cần đạt kết quả", "không nên quá cứng nhắc, cần linh hoạt", "nên tuân theo để mọi việc êm đẹp", "rất cần thiết và phải được tuân thủ chính xác"]],
+  ["Tốc độ làm việc của tôi…", ["nhanh, luôn muốn xong sớm", "nhanh nhưng đôi khi thiếu chi tiết", "đều đặn, ổn định", "chậm rãi nhưng chắc chắn"]],
+  ["Tôi thích làm việc với một người quản lý…", ["cho tôi tự do hành động", "thân thiện, cởi mở", "quan tâm và nhất quán", "rõ ràng, có tiêu chuẩn cao"]],
+  ["Khi bắt đầu một ngày làm việc, tôi…", ["xử lý ngay việc quan trọng nhất", "trò chuyện vài câu với đồng nghiệp trước", "làm theo thói quen quen thuộc", "xem lại danh sách việc và sắp xếp kế hoạch"]],
+  ["Khi người khác mắc lỗi, tôi…", ["chỉ thẳng ra để sửa ngay", "động viên và nhẹ nhàng cho qua", "thông cảm và giúp họ khắc phục", "phân tích nguyên nhân để tránh lặp lại"]],
+  ["Trong một bữa tiệc, tôi thường…", ["chủ động dẫn dắt câu chuyện", "là tâm điểm, làm quen thêm nhiều người", "ngồi cùng vài người thân quen", "quan sát và trò chuyện sâu với một hai người"]],
+  ["Khi mua một món đồ đắt tiền, tôi…", ["quyết nhanh nếu thấy nó đáp ứng nhu cầu", "chọn theo cảm hứng, thích là mua", "chọn thương hiệu quen thuộc, an toàn", "so sánh kỹ thông số, giá cả và đánh giá"]],
+  ["Tôi muốn được người khác nhìn nhận là…", ["người có năng lực và thành tích", "người thú vị, được yêu mến", "người tốt bụng, đáng tin", "người giỏi chuyên môn, chuẩn xác"]],
+  ["Khi nhận góp ý tiêu cực, tôi…", ["phản bác ngay nếu thấy không đúng", "buồn một chút nhưng nhanh quên", "để trong lòng và suy nghĩ khá lâu", "xem xét lại xem góp ý có cơ sở không"]],
+  ["Về việc lập kế hoạch, tôi…", ["đặt mục tiêu lớn, linh hoạt cách làm", "thích ứng biến, không thích kế hoạch quá kỹ", "thích có kế hoạch rõ ràng và làm theo", "lập kế hoạch chi tiết đến từng bước"]],
+  ["Vai trò phù hợp nhất với tôi là…", ["người lãnh đạo, ra quyết định", "người truyền thông, kết nối", "người hỗ trợ, điều phối", "người chuyên gia, kiểm soát chất lượng"]],
+  ["Khi được giao nhiều việc cùng lúc, tôi…", ["ưu tiên việc tạo ra kết quả lớn nhất", "làm việc nào thấy hứng thú trước", "làm lần lượt từng việc một", "sắp xếp thứ tự hợp lý rồi mới bắt đầu"]],
+  ["Câu nói gần với tôi nhất là…", ["“Cứ làm đi, kết quả sẽ trả lời.”", "“Cuộc sống là để tận hưởng cùng mọi người.”", "“Chậm mà chắc.”", "“Đã làm thì phải làm cho đúng.”"]],
+  ["Khi trong nhóm có mâu thuẫn, tôi…", ["đối mặt trực tiếp để giải quyết dứt điểm", "dùng sự hài hước để làm dịu không khí", "đứng ra hòa giải, xoa dịu các bên", "tìm hiểu sự thật rồi mới nêu ý kiến"]],
+  ["Điều quan trọng nhất với tôi trong công việc là…", ["thành tựu và sự tiến bộ", "niềm vui và các mối quan hệ", "sự ổn định và tinh thần đồng đội", "chất lượng và sự chính xác"]]
+];
+const KEYS = ["D", "I", "S", "C"];
+const N = QUESTIONS.length;
+
+// Deterministic per-question shuffle so the D/I/S/C order is never predictable
+function orderFor(qi) {
+  let seed = (qi + 1) * 2654435761 % 4294967296;
+  const rnd = () => { seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296; };
+  const a = [0, 1, 2, 3];
+  for (let i = 3; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem("disc-vn") || "null"); } catch (e) { return null; } },
+  set(v) { try { localStorage.setItem("disc-vn", JSON.stringify(v)); } catch (e) {} },
+  clear() { try { localStorage.removeItem("disc-vn"); } catch (e) {} }
+};
+
+let state = { answers: Array(N).fill(null), idx: 0 };
+const app = document.getElementById("app");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+function topbar(right = "") {
+  return `<div class="topbar"><div class="brand"><span class="dots" aria-hidden="true"><i style="background:var(--d)"></i><i style="background:var(--i)"></i><i style="background:var(--c)"></i><i style="background:var(--s)"></i></span>Trắc nghiệm DISC</div>${right}</div>`;
+}
+
+// DISC circle: D top-left, I top-right, S bottom-right, C bottom-left. Wedge radius scales with score when given.
+function quadrant(scores) {
+  const cx = 130, cy = 130, R = 96;
+  const pos = { D: [180, 270], I: [270, 360], S: [0, 90], C: [90, 180] };
+  const max = scores ? Math.max(...KEYS.map(k => scores[k])) || 1 : 1;
+  const pt = (r, deg) => [cx + r * Math.cos(deg * Math.PI / 180), cy + r * Math.sin(deg * Math.PI / 180)];
+  let wedges = "", letters = "";
+  KEYS.forEach(k => {
+    const [a0, a1] = pos[k];
+    const r = scores ? 22 + (R - 22) * (scores[k] / max) : R;
+    const [x0, y0] = pt(r, a0), [x1, y1] = pt(r, a1);
+    if (scores) {
+      const [gx0, gy0] = pt(R, a0), [gx1, gy1] = pt(R, a1);
+      wedges += `<path d="M${cx},${cy} L${gx0},${gy0} A${R},${R} 0 0 1 ${gx1},${gy1} Z" fill="var(--line)" opacity=".55"/>`;
+    }
+    wedges += `<path d="M${cx},${cy} L${x0},${y0} A${r},${r} 0 0 1 ${x1},${y1} Z" fill="${TYPES[k].color}"/>`;
+    const [lx, ly] = pt(R * 0.55, (a0 + a1) / 2);
+    letters += `<text x="${lx}" y="${ly + 9}" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="26" fill="var(--ink-fg)">${k}</text>`;
+  });
+  const lab = 'font-size="10.5" fill="var(--muted)" font-family="Be Vietnam Pro, sans-serif" text-anchor="middle"';
+  return `<svg class="quad-svg" viewBox="0 0 260 260" role="img" aria-label="Biểu đồ DISC bốn nhóm">
+    ${wedges}
+    <line x1="${cx}" y1="${cy - R}" x2="${cx}" y2="${cy + R}" stroke="var(--bg)" stroke-width="3"/>
+    <line x1="${cx - R}" y1="${cy}" x2="${cx + R}" y2="${cy}" stroke="var(--bg)" stroke-width="3"/>
+    ${letters}
+    <text x="${cx}" y="20" ${lab}>Nhanh · Chủ động</text>
+    <text x="${cx}" y="252" ${lab}>Thận trọng · Chừng mực</text>
+    <text x="14" y="${cy + 4}" ${lab} transform="rotate(-90 14 ${cy})">Hướng công việc</text>
+    <text x="246" y="${cy + 4}" ${lab} transform="rotate(90 246 ${cy})">Hướng con người</text>
+  </svg>`;
+}
+
+function renderIntro() {
+  const saved = store.get();
+  const hasProgress = saved && saved.answers && saved.answers.some(a => a !== null) && !saved.done;
+  const answered = hasProgress ? saved.answers.filter(a => a !== null).length : 0;
+  app.innerHTML = `<div class="screen stack-lg">
+    ${topbar()}
+    <section class="hero">
+      <div class="stack">
+        <span class="eyebrow">Miễn phí · Không cần đăng nhập</span>
+        <h1>Bạn thuộc nhóm tính cách nào?</h1>
+        <p class="lead">DISC chia hành vi con người thành bốn xu hướng chính. Trả lời 30 câu hỏi ngắn để biết xu hướng nổi bật của bạn, điểm mạnh, điểm cần lưu ý và cách người khác nên làm việc với bạn.</p>
+        <div class="row">
+          <button class="btn" id="start">${hasProgress ? `Làm tiếp (câu ${Math.min(answered + 1, N)}/${N})` : "Bắt đầu làm bài"}</button>
+          ${hasProgress ? `<button class="btn ghost" id="restart">Làm lại từ đầu</button>` : ""}
+        </div>
+      </div>
+      ${quadrant()}
+    </section>
+    <div class="facts">
+      <div><b>30</b><span>câu hỏi</span></div>
+      <div><b>5–7</b><span>phút</span></div>
+      <div><b>4</b><span>nhóm DISC</span></div>
+    </div>
+    <section class="stack">
+      <h2>Bốn nhóm DISC</h2>
+      <div class="types">
+        ${KEYS.map(k => `<div class="type-chip"><span class="letter" style="background:${TYPES[k].color}">${k}</span><p><strong>${TYPES[k].name} (${TYPES[k].en})</strong>${TYPES[k].short}</p></div>`).join("")}
+      </div>
+    </section>
+    <section class="howto">
+      <h3>Cách làm bài</h3>
+      <ul>
+        <li>Mỗi câu có 4 lựa chọn. Chọn <strong>một</strong> lựa chọn giống bạn nhất.</li>
+        <li>Trả lời theo con người thật của bạn, không phải hình mẫu bạn muốn trở thành.</li>
+        <li>Không có đáp án đúng hay sai. Nếu phân vân, hãy chọn theo cảm nhận đầu tiên.</li>
+        <li>Bài làm được lưu tự động trên trình duyệt, bạn có thể làm tiếp nếu lỡ thoát ra.</li>
+      </ul>
+    </section>
+    <p class="note">DISC dựa trên lý thuyết của nhà tâm lý học William Moulton Marston (1928). Bài trắc nghiệm này mang tính tham khảo để tự hiểu bản thân, không phải công cụ chẩn đoán tâm lý hay đánh giá năng lực.</p>
+  </div>`;
+  document.getElementById("start").onclick = () => {
+    if (hasProgress) { state = { answers: saved.answers, idx: Math.min(answered, N - 1) }; }
+    else { state = { answers: Array(N).fill(null), idx: 0 }; }
+    renderQuestion();
+  };
+  const r = document.getElementById("restart");
+  if (r) r.onclick = () => { store.clear(); state = { answers: Array(N).fill(null), idx: 0 }; renderQuestion(); };
+}
+
+let advanceTimer = null;
+function renderQuestion() {
+  clearTimeout(advanceTimer);
+  const i = state.idx, [q, opts] = QUESTIONS[i], order = orderFor(i), sel = state.answers[i];
+  const answered = state.answers.filter(a => a !== null).length;
+  const isLast = i === N - 1;
+  app.innerHTML = `<div class="screen stack-lg">
+    ${topbar(`<button class="btn ghost small" id="home">Thoát</button>`)}
+    <div class="stack">
+      <div class="progress" aria-hidden="true">${state.answers.map((a, j) => `<i class="${j === i ? "cur" : a !== null ? "done" : ""}"></i>`).join("")}</div>
+      <div class="qmeta"><span>Câu ${i + 1} / ${N}</span><span>Đã trả lời ${answered}</span></div>
+    </div>
+    <h2 class="qtext">${esc(q)}</h2>
+    <div class="opts" role="radiogroup" aria-label="Chọn lựa chọn giống bạn nhất">
+      ${order.map((oi, n) => `<button class="opt ${sel === KEYS[oi] ? "sel" : ""}" role="radio" aria-checked="${sel === KEYS[oi]}" data-k="${KEYS[oi]}"><span class="k">${n + 1}</span><span>${esc(opts[oi])}</span></button>`).join("")}
+    </div>
+    <div class="row" style="justify-content:space-between">
+      <button class="btn ghost" id="prev" ${i === 0 ? "disabled" : ""}>← Câu trước</button>
+      ${isLast
+        ? `<button class="btn" id="finish" ${answered < N ? "disabled" : ""}>Xem kết quả</button>`
+        : `<button class="btn ghost" id="next" ${sel === null ? "disabled" : ""}>Câu sau →</button>`}
+    </div>
+    <p class="hint">Mẹo: nhấn phím 1–4 để chọn nhanh, ← → để chuyển câu.</p>
+    ${isLast && answered < N ? `<p class="hint">Bạn còn ${N - answered} câu chưa trả lời. Câu đầu tiên còn thiếu: <button class="btn ghost small" id="jump">Câu ${state.answers.indexOf(null) + 1}</button></p>` : ""}
+  </div>`;
+  app.querySelectorAll(".opt").forEach(b => b.onclick = () => choose(b.dataset.k));
+  document.getElementById("home").onclick = () => { save(); renderIntro(); };
+  document.getElementById("prev").onclick = () => go(-1);
+  const nx = document.getElementById("next"); if (nx) nx.onclick = () => go(1);
+  const fin = document.getElementById("finish"); if (fin) fin.onclick = finish;
+  const jp = document.getElementById("jump"); if (jp) jp.onclick = () => { state.idx = state.answers.indexOf(null); renderQuestion(); };
+}
+
+function save() { store.set({ answers: state.answers, done: false }); }
+function choose(k) {
+  state.answers[state.idx] = k; save();
+  app.querySelectorAll(".opt").forEach(b => { const on = b.dataset.k === k; b.classList.toggle("sel", on); b.setAttribute("aria-checked", on); });
+  advanceTimer = setTimeout(() => {
+    if (state.idx < N - 1) { state.idx++; renderQuestion(); }
+    else if (state.answers.every(a => a !== null)) finish();
+    else renderQuestion();
+  }, 280);
+}
+function go(d) {
+  const n = state.idx + d;
+  if (n < 0 || n >= N) return;
+  if (d > 0 && state.answers[state.idx] === null) return;
+  state.idx = n; renderQuestion();
+}
+document.addEventListener("keydown", e => {
+  if (!app.querySelector(".opts")) return;
+  if (["1", "2", "3", "4"].includes(e.key)) { const b = app.querySelectorAll(".opt")[+e.key - 1]; if (b) b.click(); }
+  else if (e.key === "ArrowLeft") go(-1);
+  else if (e.key === "ArrowRight") go(1);
+});
+
+function finish() {
+  const counts = { D: 0, I: 0, S: 0, C: 0 };
+  state.answers.forEach(a => { if (a) counts[a]++; });
+  store.set({ answers: state.answers, done: true, counts });
+  try { history.replaceState(null, "", "#kq-" + KEYS.map(k => counts[k]).join("-")); } catch (e) {}
+  renderResult(counts, false);
+  window.scrollTo(0, 0);
+}
+
+function renderResult(counts, shared) {
+  const total = KEYS.reduce((s, k) => s + counts[k], 0) || 1;
+  const pct = k => Math.round(counts[k] / total * 100);
+  const ranked = [...KEYS].sort((a, b) => counts[b] - counts[a]);
+  const p = ranked[0], s = ranked[1], t = TYPES[p];
+  const secondaryStrong = counts[s] >= counts[p] * 0.7 && counts[s] > 0;
+  const comboKey = ["DI", "DS", "DC", "IS", "IC", "SC"].find(c => c.includes(p) && c.includes(s));
+  const combo = COMBOS[comboKey];
+  const balanced = counts[ranked[0]] - counts[ranked[3]] <= 3;
+  const label = secondaryStrong ? p + s : p;
+
+  const bars = KEYS.map(k => `<div class="bar"><span><strong style="color:${TYPES[k].color}">${k}</strong> · ${TYPES[k].name}</span><div class="track"><div class="fill" style="width:0;background:${TYPES[k].color}" data-w="${pct(k)}"></div></div><b>${pct(k)}%</b></div>`).join("");
+
+  app.innerHTML = `<div class="screen stack-lg">
+    ${topbar(`<button class="btn ghost small" id="again">Làm lại</button>`)}
+    ${shared ? `<div class="shared-banner">Đây là kết quả DISC được chia sẻ với bạn. <button class="btn small" id="mine">Làm bài của bạn</button></div>` : ""}
+    <section class="result-head">
+      <div class="stack">
+        <span class="eyebrow">Kết quả của ${shared ? "người này" : "bạn"}</span>
+        <div class="big-type"><span class="letter" style="background:${t.color}">${p}</span><div><h1 style="font-size:clamp(1.9rem,6vw,2.6rem)">${t.name}</h1><p class="muted">${t.nick} · ${t.en}</p></div></div>
+        <p>${t.summary}</p>
+        <div class="tags">${t.keywords.map(w => `<span class="tag">${w}</span>`).join("")}</div>
+      </div>
+      ${quadrant(counts)}
+    </section>
+
+    <section class="panel stack">
+      <div class="row" style="justify-content:space-between"><h3>Điểm số bốn nhóm</h3><span class="muted" style="font-size:.9rem;font-variant-numeric:tabular-nums">${KEYS.map(k => `${k} ${counts[k]}`).join(" · ")} / ${total} câu</span></div>
+      <div class="bars">${bars}</div>
+      <p class="muted" style="font-size:.92rem">${balanced
+        ? "Điểm của bạn khá cân bằng giữa các nhóm. Điều này cho thấy bạn linh hoạt, có thể chuyển đổi cách hành xử tùy hoàn cảnh. Nhóm nổi bật nhất vẫn là gợi ý về xu hướng tự nhiên của bạn."
+        : `Nhóm nổi bật nhất là <strong>${p}</strong>, tiếp theo là <strong>${s}</strong>. Ai cũng có đủ bốn nhóm, chỉ khác nhau ở mức độ. Nhóm cao nhất thể hiện cách bạn hành xử tự nhiên nhất.`}</p>
+    </section>
+
+    ${combo ? `<section class="panel tint stack" style="background:${t.soft}">
+      <span class="eyebrow">Tổ hợp ${secondaryStrong ? label : p + " – " + s}</span>
+      <h3>${combo.name}</h3>
+      <p>${combo.text}</p>
+      ${secondaryStrong ? "" : `<p class="muted" style="font-size:.9rem">Nhóm ${s} của bạn thấp hơn khá rõ so với ${p}, nên tổ hợp này chỉ ảnh hưởng nhẹ đến tính cách chính.</p>`}
+    </section>` : ""}
+
+    <div class="grid2">
+      <section class="panel stack"><h3>Điểm mạnh</h3><ul class="list">${t.strengths.map(x => `<li>${x}</li>`).join("")}</ul></section>
+      <section class="panel stack"><h3>Điểm cần lưu ý</h3><ul class="list">${t.weaknesses.map(x => `<li>${x}</li>`).join("")}</ul></section>
+    </div>
+
+    <section class="panel stack">
+      <h3>Hiểu sâu hơn về bạn</h3>
+      <div class="grid2">
+        <div><span class="eyebrow">Động lực</span><p>${t.motivation}</p></div>
+        <div><span class="eyebrow">Nỗi sợ</span><p>${t.fear}</p></div>
+        <div><span class="eyebrow">Khi bị áp lực</span><p>${t.stress}</p></div>
+        <div><span class="eyebrow">Môi trường phù hợp</span><p>${t.environment}</p></div>
+      </div>
+    </section>
+
+    <div class="grid2">
+      <section class="panel stack"><h3>Người khác nên làm việc với bạn thế nào</h3><ul class="list">${t.howto.map(x => `<li>${x}</li>`).join("")}</ul></section>
+      <section class="panel stack"><h3>Gợi ý để phát triển</h3><ul class="list">${t.growth.map(x => `<li>${x}</li>`).join("")}</ul></section>
+    </div>
+
+    <section class="panel stack">
+      <h3>Nghề nghiệp thường phù hợp</h3>
+      <div class="tags">${t.careers.map(c => `<span class="tag">${c}</span>`).join("")}</div>
+      <p class="muted" style="font-size:.9rem">Đây chỉ là gợi ý. Người thuộc nhóm nào cũng có thể thành công ở bất kỳ nghề nào; DISC cho biết bạn sẽ làm việc theo phong cách nào.</p>
+    </section>
+
+    <section class="stack">
+      <h3>Ba nhóm còn lại</h3>
+      <div class="others">${ranked.slice(1).map(k => `<div class="panel stack" style="gap:8px"><div class="row" style="gap:10px"><span class="letter" style="background:${TYPES[k].color};width:32px;height:32px;font-size:1rem">${k}</span><strong>${TYPES[k].name} · ${pct(k)}%</strong></div><p>${TYPES[k].short} Khi làm việc với họ: ${TYPES[k].howto[0].toLowerCase()}.</p></div>`).join("")}</div>
+    </section>
+
+    <section class="panel stack">
+      <h3>Lưu hoặc chia sẻ kết quả</h3>
+      <div class="row">
+        <button class="btn" id="copy">Sao chép kết quả</button>
+        <button class="btn ghost" id="again2">Làm lại bài test</button>
+      </div>
+      <span class="toast" id="toast" hidden></span>
+      <textarea id="copytext" readonly hidden style="width:100%;min-height:120px;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg)"></textarea>
+    </section>
+
+    <p class="note">Kết quả phản ánh cách bạn trả lời tại thời điểm làm bài và mang tính tham khảo. Tính cách có thể thay đổi theo hoàn cảnh, vai trò và giai đoạn cuộc sống. DISC không đo trí thông minh, năng lực hay giá trị của một người.</p>
+  </div>`;
+
+  requestAnimationFrame(() => requestAnimationFrame(() => app.querySelectorAll(".fill").forEach(f => f.style.width = f.dataset.w + "%")));
+
+  const again = () => { store.clear(); try { history.replaceState(null, "", location.pathname); } catch (e) {} state = { answers: Array(N).fill(null), idx: 0 }; renderQuestion(); window.scrollTo(0, 0); };
+  document.getElementById("again").onclick = again;
+  document.getElementById("again2").onclick = again;
+  const mine = document.getElementById("mine"); if (mine) mine.onclick = () => { try { history.replaceState(null, "", location.pathname); } catch (e) {} renderIntro(); };
+
+  document.getElementById("copy").onclick = () => {
+    const standalone = window.top === window && /^https?:$/.test(location.protocol);
+    const link = standalone ? location.origin + location.pathname + "#kq-" + KEYS.map(k => counts[k]).join("-") : "";
+    const text = `Kết quả DISC của tôi: ${label} – ${t.name} (${t.nick})\n` +
+      KEYS.map(k => `${k} ${TYPES[k].name}: ${pct(k)}%`).join(" | ") +
+      (link ? `\nXem chi tiết: ${link}` : "");
+    const ta = document.getElementById("copytext"), toast = document.getElementById("toast");
+    ta.value = text;
+    const fallback = () => { ta.hidden = false; ta.focus(); ta.select(); toast.hidden = false; toast.textContent = "Hãy nhấn Ctrl+C (hoặc giữ để sao chép) đoạn văn bản bên dưới."; };
+    try {
+      navigator.clipboard.writeText(text).then(() => { toast.hidden = false; toast.textContent = "Đã sao chép kết quả."; }, fallback);
+    } catch (e) { fallback(); }
+  };
+}
+
+// Boot: a shared result link (#kq-D-I-S-C) opens straight to the result
+window.addEventListener("hashchange", () => { if (/^#kq-/.test(location.hash)) { boot(); window.scrollTo(0, 0); } });
+boot();
+function boot() {
+  const m = /^#kq-(\d+)-(\d+)-(\d+)-(\d+)$/.exec(location.hash || "");
+  if (m) {
+    const counts = { D: +m[1], I: +m[2], S: +m[3], C: +m[4] };
+    const saved = store.get();
+    const isMine = saved && saved.done && saved.counts && KEYS.every(k => saved.counts[k] === counts[k]);
+    if (KEYS.reduce((s, k) => s + counts[k], 0) > 0) { renderResult(counts, !isMine); return; }
+  }
+  const saved = store.get();
+  if (saved && saved.done && saved.counts) { renderResult(saved.counts, false); return; }
+  renderIntro();
+}
+</script>
+</body>
+</html>
