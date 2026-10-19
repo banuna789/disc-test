@@ -314,6 +314,7 @@
   const online = () => !!CONFIG.aiEndpoint;
 
   function chatPanel() {
+    if (!online()) return "";
     return `<section class="panel chat stack" id="chat">
       <div class="chat-head">
         <span class="spark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l1.9 6.1L20 10l-6.1 1.9L12 18l-1.9-6.1L4 10l6.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg></span>
@@ -321,26 +322,17 @@
       </div>
       <div class="chips">${t("chatSuggest").map(s => `<button type="button" class="chip">${esc(s)}</button>`).join("")}</div>
       <div class="msgs" id="msgs"></div>
-      ${online() ? "" : `<p class="offline">${t("chatOffline")}</p>`}
       <form class="chat-form" id="chatform">
         <textarea id="chatinput" rows="1" maxlength="1500" placeholder="${t("chatPlaceholder")}" aria-label="${t("chatPlaceholder")}"></textarea>
-        <button class="btn" type="submit" id="chatsend">${online() ? t("send") : t("openClaude")}</button>
+        <button class="btn" type="submit" id="chatsend">${t("send")}</button>
       </form>
       <p class="hint">${t("chatNote")}</p>
     </section>`;
   }
 
-  function profileText(a, counts) {
-    const T = L().types;
-    return t("chatContext", {
-      scores: KEYS.map(k => `${k} ${a.pct(k)}%`).join(", "),
-      p: a.p, name: T[a.p].name,
-      sec: a.secondaryStrong ? t("chatSec", { s: a.s, name: T[a.s].name }) : ""
-    });
-  }
-
   function bindChat(a, counts) {
     const form = document.getElementById("chatform"), input = document.getElementById("chatinput");
+    if (!form) return;
     renderMsgs();
     app.querySelectorAll(".chip").forEach(c => c.onclick = () => { input.value = c.textContent; form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event("submit", { cancelable: true })); });
     input.addEventListener("input", () => { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 160) + "px"; });
@@ -349,11 +341,6 @@
       e.preventDefault();
       const q = input.value.trim();
       if (!q || chat.busy) return;
-      if (!online()) {
-        const prompt = profileText(a, counts) + "\n\n" + t("question") + " " + q;
-        window.open("https://claude.ai/new?q=" + encodeURIComponent(prompt), "_blank", "noopener");
-        return;
-      }
       input.value = ""; input.style.height = "auto";
       sendChat(q, a, counts);
     });
@@ -392,13 +379,14 @@
     chat.messages.push({ role: "user", content: q });
     chat.busy = true; renderMsgs();
     const history = chat.messages.filter(m => m.role === "user" || m.role === "assistant").slice(-12);
-    let text = "", refusal = false;
+    let text = "";
     try {
       const res = await fetch(CONFIG.aiEndpoint, {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lang, profile: { counts, primary: a.p, secondary: a.secondaryStrong ? a.s : null }, messages: history })
       });
       if (res.status === 429) throw new Error("rate");
+      if (res.status === 503) throw new Error("quota");
       if (!res.ok || !res.body) throw new Error("http");
       const reader = res.body.getReader(), dec = new TextDecoder();
       let buf = "";
@@ -410,19 +398,18 @@
         while ((cut = buf.indexOf("\n\n")) >= 0) {
           const block = buf.slice(0, cut); buf = buf.slice(cut + 2);
           const data = block.split("\n").filter(l => l.startsWith("data:")).map(l => l.slice(5).trim()).join("");
-          if (!data) continue;
+          if (!data || data === "[DONE]") continue;
           let ev; try { ev = JSON.parse(data); } catch (e) { continue; }
-          if (ev.type === "content_block_delta" && ev.delta && ev.delta.type === "text_delta") { text += ev.delta.text; renderMsgs(text); }
-          else if (ev.type === "message_delta" && ev.delta && ev.delta.stop_reason === "refusal") refusal = true;
-          else if (ev.type === "error") throw new Error("stream");
+          if (typeof ev.t === "string") { text += ev.t; renderMsgs(text); }
         }
       }
-      if (refusal && !text) chat.messages.push({ role: "error", content: t("chatRefusal") });
-      else if (text) chat.messages.push({ role: "assistant", content: text });
-      else throw new Error("empty");
+      text = text.trim();
+      if (!text) throw new Error("empty");
+      chat.messages.push({ role: "assistant", content: text });
     } catch (e) {
       chat.messages.pop(); // drop the unanswered question so the history stays user/assistant alternating
-      chat.messages.push({ role: "error", content: (e.message === "rate" ? t("chatRate") : t("chatError")) + "\n“" + q + "”" });
+      const msg = e.message === "rate" ? t("chatRate") : e.message === "quota" ? t("chatQuota") : t("chatError");
+      chat.messages.push({ role: "error", content: msg + "\n“" + q + "”" });
     }
     chat.busy = false; renderMsgs();
   }

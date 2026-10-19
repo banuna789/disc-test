@@ -1,29 +1,24 @@
-# Bật trợ lý AI (Claude) cho trang DISC
+# Trợ lý AI cho trang DISC (Cloudflare Workers AI, miễn phí)
 
-Trang web chạy tĩnh trên GitHub Pages nên không thể giữ bí mật API key. File `worker.js` là một
-Cloudflare Worker nhỏ đứng giữa: giữ API key, cố định system prompt, giới hạn độ dài và số lượt hỏi,
-rồi chuyển câu trả lời của Claude về trình duyệt theo dạng stream.
+`worker.js` là một Cloudflare Worker chạy model AI mã nguồn mở qua Workers AI.
+Không cần API key, không cần thẻ thanh toán.
 
-Khi chưa bật Worker, ô chat trên trang vẫn dùng được: bấm gửi sẽ mở Claude.ai trong tab mới với
-kết quả DISC và câu hỏi đã điền sẵn (người dùng cần tài khoản Claude.ai).
+## Chi phí và giới hạn
 
-## Chi phí
+- Gói Workers Free: 10.000 "neuron" mỗi ngày, reset lúc 00:00 UTC (7 giờ sáng giờ Việt Nam).
+- Model mặc định `@cf/qwen/qwen3-30b-a3b-fp8` tốn khoảng 20 neuron mỗi lượt hỏi,
+  tức khoảng 400–500 lượt mỗi ngày.
+- Hết hạn mức thì chat báo "hết lượt hôm nay" cho đến khi reset. Ở gói Free **không bao giờ bị tính tiền**.
+- Mỗi IP được hỏi tối đa 20 lượt / 10 phút.
 
-- Cloudflare Workers: gói miễn phí 100.000 request/ngày, đủ dùng.
-- Claude API: **trả phí theo lượng dùng**. Mặc định Worker dùng `claude-opus-5-5`
-  ($4 / $20 cho mỗi 1 triệu token vào/ra). Một lượt hỏi đáp ngắn thường tốn khoảng 1–3 cent.
-  Muốn rẻ hơn nhiều, đổi `MODEL` trong `worker.js` thành `claude-haiku-5-5` ($0.10 / $0.50).
-- Hãy đặt **giới hạn chi tiêu hằng tháng** trong console.anthropic.com → Billing → Limits.
-  Giới hạn trong Worker (20 lượt / 10 phút / IP) chỉ là lớp bảo vệ phụ.
+## Cài đặt
 
-## Các bước
+1. https://dash.cloudflare.com → Workers & Pages → Create → Create Worker → đặt tên `disc-ai` → Deploy.
+2. Edit code → dán toàn bộ `worker.js` → Deploy.
+3. Settings → Bindings → Add → **Workers AI**, tên biến `AI`.
+4. Settings → Variables and Secrets → Add → Text `ALLOWED_ORIGINS` = `https://banuna789.github.io`.
+5. Dán địa chỉ Worker vào `aiEndpoint` trong `js/config.js`.
 
-1. Tạo API key tại https://console.anthropic.com → API Keys (nạp tiền ở mục Billing).
-2. Đăng nhập https://dash.cloudflare.com (tạo tài khoản miễn phí nếu chưa có).
-3. Workers & Pages → Create → Create Worker → đặt tên, ví dụ `disc-ai` → Deploy.
-4. Edit code → xóa code mẫu, dán toàn bộ nội dung `worker.js` → Deploy.
-5. Settings → Variables and Secrets:
-   - Add → Type **Secret**, tên `ANTHROPIC_API_KEY`, giá trị là API key của bạn.
-   - Add → Type **Text**, tên `ALLOWED_ORIGINS`, giá trị `https://banuna789.github.io`.
-6. Copy địa chỉ Worker (dạng `https://disc-ai.<tên-bạn>.workers.dev`) và dán vào `aiEndpoint`
-   trong `js/config.js`, rồi commit lên GitHub.
+Muốn thử model khác, thêm biến Text `MODEL` (ví dụ `@cf/meta/llama-4-scout-17b-16e-instruct`
+hoặc `@cf/openai/gpt-oss-20b`). Model khác tốn neuron khác, xem bảng giá:
+https://developers.cloudflare.com/workers-ai/platform/pricing/

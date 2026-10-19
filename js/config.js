@@ -1,5 +1,5 @@
-// Site settings. Put the URL of your deployed Cloudflare Worker (see worker/README.md) in aiEndpoint
-// to switch on the in-page AI chat. Leave it empty and the chat opens Claude.ai in a new tab instead.
+// Site settings. aiEndpoint is the URL of the Cloudflare Worker in worker/ (see worker/README.md).
+// Leave it empty to hide the AI chat on the result page.
 window.DISC_CONFIG = {
-  aiEndpoint: ""
+  aiEndpoint: "https://disc-ai.nguyenvuminhtan.workers.dev"
 };
