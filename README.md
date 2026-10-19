@@ -24,7 +24,8 @@ Pages project → **Settings**:
      ví dụ `https://disc-test-6xo.pages.dev`.
    - `SESSION_SECRET` (Secret): một chuỗi ngẫu nhiên dài (từ 32 ký tự), dùng để ký cookie đăng nhập.
 2. **Bindings** → Add → **Workers AI**, tên biến `AI`.
-3. Deployments → Retry deployment (hoặc push một commit mới) để áp dụng.
+3. (Tùy chọn) `REQUIRE_LOGIN` (Text) = `false` để mở trang cho mọi người, không cần đăng nhập. Xóa biến hoặc đặt `true` để bật lại đăng nhập.
+4. Deployments → Retry deployment (hoặc push một commit mới) để áp dụng.
 
 Workers AI gói Free cho 10.000 neuron/ngày (khoảng 400–500 lượt hỏi), hết thì dừng chứ không tính tiền.
 Muốn đổi model, thêm biến `MODEL`, ví dụ `@cf/meta/llama-4-scout-17b-16e-instruct`.

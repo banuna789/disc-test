@@ -4,6 +4,8 @@
 // Pages project → Settings → Variables and Secrets:
 //   GOOGLE_CLIENT_ID  (Text)    OAuth "Web application" client ID from Google Cloud
 //   SESSION_SECRET    (Secret)  any long random string; used to sign session cookies
+//   REQUIRE_LOGIN     (Text)    "false" opens the whole site (and AI chat) without sign-in;
+//                               anything else, or unset, requires Google sign-in
 
 import { readSession, signSession, sessionCookie, clearCookie } from "../lib/session.js";
 
@@ -15,6 +17,12 @@ export async function onRequest(context) {
 
   // Public pages Google requires for the sign-in consent screen
   if (url.pathname === "/privacy" || url.pathname === "/privacy.html") return next();
+
+  // Open mode: no sign-in anywhere; the page hides the account bar because /auth/me says "not signed in"
+  if (String(env.REQUIRE_LOGIN).trim().toLowerCase() === "false") {
+    if (url.pathname.startsWith("/auth/")) return Response.json({ error: "login disabled" }, { status: 404 });
+    return next();
+  }
 
   if (!env.GOOGLE_CLIENT_ID || !env.SESSION_SECRET) {
     return new Response("Login is not configured: set GOOGLE_CLIENT_ID and SESSION_SECRET in the Pages project settings.", { status: 500 });
