@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Quản trị DISC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+/* Layout: summary tiles over a dense, scrollable results table — scanned, not read */
+:root {
+  --bg: #F2F4F7; --surface: #FFFFFF; --fg: #162033; --muted: #5A6477; --line: #DCE1E9;
+  --ink: #162033; --ink-fg: #FFFFFF;
+  --d: #CF4430; --i: #D99211; --s: #24935F; --c: #2E66CF;
+  --display: "Bricolage Grotesque", "Be Vietnam Pro", system-ui, sans-serif;
+  --body: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #10151F; --surface: #19202D; --fg: #E8ECF3; --muted: #A0AABB; --line: #2C3546;
+    --ink: #E8ECF3; --ink-fg: #10151F;
+    --d: #F0705C; --i: #F2B544; --s: #4CC48C; --c: #6C9BF5;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-block: 24px 64px; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--display); font-weight: 800; font-size: 1.6rem; margin: 0; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.dots { display: grid; grid-template-columns: 9px 9px; gap: 2px; }
+.dots i { width: 9px; height: 9px; border-radius: 2px; display: block; }
+.who { font-size: .88rem; color: var(--muted); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.who a { color: var(--fg); font-weight: 600; }
+.tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.tile b { display: block; font-family: var(--display); font-size: 1.6rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile span { font-size: .82rem; color: var(--muted); }
+.tile.k { border-top: 3px solid var(--kc); }
+.tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tools input { font: inherit; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--surface); color: var(--fg); min-width: 0; flex: 1 1 220px; max-width: 360px; }
+.btn { font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; padding: 8px 16px; border: 1.5px solid var(--ink); background: var(--ink); color: var(--ink-fg); }
+.btn.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+.btn.danger { background: transparent; color: var(--d); border-color: transparent; padding: 4px 8px; font-size: .85rem; }
+.btn:focus-visible, .tools input:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+.count { font-size: .88rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 860px; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+th { font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); font-weight: 600; background: var(--surface); position: sticky; top: 0; }
+tr:last-child td { border-bottom: 0; }
+td.num { font-variant-numeric: tabular-nums; text-align: right; }
+td.name { white-space: normal; min-width: 160px; font-weight: 600; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
+.pill i { width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: var(--ink-fg); font-style: normal; font-size: .8rem; font-family: "Bricolage Grotesque", sans-serif; }
+.mini { display: flex; height: 8px; width: 120px; border-radius: 4px; overflow: hidden; background: var(--line); }
+.mini span { display: block; height: 100%; }
+.muted { color: var(--muted); }
+.empty { padding: 32px; text-align: center; color: var(--muted); }
+.confirm { display: inline-flex; gap: 6px; align-items: center; font-size: .85rem; }
+@media (max-width: 760px) { .tiles { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="dots" aria-hidden="true"><i style="background:var(--d)"></i><i style="background:var(--i)"></i><i style="background:var(--c)"></i><i style="background:var(--s)"></i></span><h1>Quản trị DISC</h1></div>
+    <div class="who"><span id="me"></span><a href="/">Trang làm bài</a><a href="/auth/logout">Đăng xuất</a></div>
+  </header>
+
+  <section class="tiles" aria-label="Tổng quan">
+    <div class="tile"><b id="t-all">–</b><span>lượt làm bài</span></div>
+    <div class="tile k" style="--kc:var(--d)"><b id="t-D">–</b><span>D · Thống trị</span></div>
+    <div class="tile k" style="--kc:var(--i)"><b id="t-I">–</b><span>I · Ảnh hưởng</span></div>
+    <div class="tile k" style="--kc:var(--s)"><b id="t-S">–</b><span>S · Kiên định</span></div>
+    <div class="tile k" style="--kc:var(--c)"><b id="t-C">–</b><span>C · Tuân thủ</span></div>
+  </section>
+
+  <section class="tools">
+    <input id="q" type="search" placeholder="Tìm theo tên…" aria-label="Tìm theo tên">
+    <button class="btn ghost" id="reload" type="button">Tải lại</button>
+    <button class="btn" id="csv" type="button">Xuất CSV</button>
+    <span class="count" id="count"></span>
+  </section>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Thời gian</th><th>Họ tên</th><th>Ngày sinh</th><th>Tuổi</th><th>Nhóm chính</th>
+        <th>Tỉ lệ</th><th style="text-align:right">D</th><th style="text-align:right">I</th><th style="text-align:right">S</th><th style="text-align:right">C</th>
+        <th>Bài</th><th>Ngôn ngữ</th><th></th>
+      </tr></thead>
+      <tbody id="rows"><tr><td colspan="13" class="empty">Đang tải…</td></tr></tbody>
+    </table>
+  </div>
+  <p class="muted" style="font-size:.85rem">Tỉ lệ D/I/S/C tính theo phần trăm số câu. Nhóm chính được tính lại trên máy chủ khi lưu.</p>
+</div>
+<script src="/js/admin.js"></script>
+</body>
+</html>

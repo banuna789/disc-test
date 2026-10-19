@@ -90,13 +90,60 @@
   let view = "intro", resultView = null, advanceTimer = null;
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
-  function newTest(mode) {
+  function newTest(mode, profile) {
     const sit = BANK.filter(q => q.type === "s").map(q => q.id), words = BANK.filter(q => q.type === "w").map(q => q.id);
     const ids = mode === "full" ? shuffle(sit.concat(words)) : shuffle(shuffle(sit).slice(0, 20).concat(shuffle(words).slice(0, 10)));
     // option display order is fixed per test so going back shows the same layout
     const orders = Object.fromEntries(ids.map(id => [id, shuffle([0, 1, 2, 3])]));
-    state = { mode, ids, orders, answers: {}, idx: 0 };
+    state = { mode, ids, orders, answers: {}, idx: 0, profile };
     saveProgress();
+  }
+
+  // ---------- name + date of birth (asked before every new test) ----------
+  const PROFILE = "disc-v2-profile";
+  let pendingStart = null; // what to do once the profile form is filled in
+  const todayISO = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
+  function askProfile(onDone) {
+    pendingStart = onDone;
+    renderProfile();
+  }
+  function renderProfile(errors = {}) {
+    view = "profile";
+    const p = store.get(PROFILE) || {};
+    const v = id => { const el = document.getElementById(id); return el ? el.value : null; };
+    const name = v("pf-name") ?? p.name ?? "", dob = v("pf-dob") ?? p.dob ?? "";
+    app.innerHTML = `<div class="screen stack-lg">
+      ${topbar(`<button class="btn ghost small" id="home">${t("exit")}</button>`)}
+      <form class="panel stack profile" id="pf" novalidate>
+        <div class="stack" style="gap:6px"><h2>${t("profileTitle")}</h2><p class="muted">${t("profileLead")}</p></div>
+        <label class="field" for="pf-name"><span>${t("nameLabel")}</span>
+          <input id="pf-name" name="name" type="text" maxlength="80" autocomplete="name" required value="${esc(name)}" placeholder="${t("namePh")}" aria-invalid="${!!errors.name}">
+          ${errors.name ? `<em class="err">${t("errName")}</em>` : ""}</label>
+        <label class="field" for="pf-dob"><span>${t("dobLabel")}</span>
+          <input id="pf-dob" name="dob" type="date" min="1900-01-01" max="${todayISO()}" required value="${esc(dob)}" aria-invalid="${!!errors.dob}">
+          ${errors.dob ? `<em class="err">${t("errDob")}</em>` : ""}</label>
+        <p class="hint">${t("profileNote")} <a href="/privacy" target="_blank" rel="noopener">${t("privacy")}</a></p>
+        <div class="row"><button class="btn" type="submit">${t("startTest")}</button><button class="btn ghost" type="button" id="pf-back">${t("back")}</button></div>
+      </form>
+    </div>`;
+    bindTopbar();
+    document.getElementById("home").onclick = renderIntro;
+    document.getElementById("pf-back").onclick = renderIntro;
+    document.getElementById("pf").addEventListener("submit", e => {
+      e.preventDefault();
+      const nm = v("pf-name").replace(/\s+/g, " ").trim(), d = v("pf-dob");
+      const err = {};
+      if (!nm || nm.length > 80) err.name = true;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || d < "1900-01-01" || d > todayISO()) err.dob = true;
+      if (err.name || err.dob) { renderProfile(err); const f = document.querySelector("[aria-invalid=true]"); if (f) f.focus(); return; }
+      const profile = { name: nm, dob: d };
+      store.set(PROFILE, profile);
+      const go = pendingStart; pendingStart = null;
+      go(profile);
+    });
+    const first = errors.name ? "pf-name" : errors.dob ? "pf-dob" : (name ? "pf-dob" : "pf-name");
+    document.getElementById(first).focus();
   }
   const saveProgress = () => store.set(PROGRESS, state);
   const answeredCount = () => state.ids.filter(id => state.answers[id]).length;
@@ -136,11 +183,15 @@
       <p class="note">${t("about")}</p>
     </div>`;
     bindTopbar();
-    const start = mode => { store.del(RESULT); newTest(mode); renderQuestion(); window.scrollTo(0, 0); };
+    const start = mode => askProfile(profile => { store.del(RESULT); newTest(mode, profile); renderQuestion(); window.scrollTo(0, 0); });
     document.getElementById("quick").onclick = () => start("quick");
     document.getElementById("full").onclick = () => start("full");
     const r = document.getElementById("resume");
-    if (r) r.onclick = () => { state = saved; state.idx = Math.min(n, state.ids.length - 1); renderQuestion(); };
+    if (r) r.onclick = () => {
+      const resume = () => { state = saved; state.idx = Math.min(n, state.ids.length - 1); renderQuestion(); };
+      if (saved.profile) resume();
+      else askProfile(profile => { saved.profile = profile; resume(); saveProgress(); });
+    };
   }
 
   // ---------- question ----------
@@ -207,10 +258,19 @@
     state.ids.forEach(id => { const a = state.answers[id]; if (a) counts[a]++; });
     store.set(RESULT, counts);
     store.del(PROGRESS);
+    saveResult(counts);
     try { history.replaceState(null, "", "#kq-" + KEYS.map(k => counts[k]).join("-")); } catch (e) {}
     chat = { messages: [], busy: false };
     renderResult(counts, false);
     window.scrollTo(0, 0);
+  }
+
+  // Sends the finished test to the server (admins can review it). Retries once; never blocks the result page.
+  function saveResult(counts) {
+    if (!CONFIG.resultsEndpoint || !state.profile) return;
+    const body = JSON.stringify({ name: state.profile.name, dob: state.profile.dob, counts, mode: state.mode, lang });
+    const send = () => fetch(CONFIG.resultsEndpoint, { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true });
+    send().then(r => { if (!r.ok && r.status >= 500) setTimeout(send, 3000); }).catch(() => setTimeout(() => send().catch(() => {}), 3000));
   }
 
   // ---------- result ----------
@@ -234,7 +294,7 @@
       ${shared ? `<div class="shared-banner"><span>${t("sharedBanner")}</span><button class="btn small" id="mine">${t("takeYours")}</button></div>` : ""}
       <section class="result-head">
         <div class="stack">
-          <span class="eyebrow">${shared ? t("theirResult") : t("yourResult")}</span>
+          <span class="eyebrow">${shared ? t("theirResult") : (store.get(PROFILE) || {}).name ? t("resultFor", { name: esc(store.get(PROFILE).name) }) : t("yourResult")}</span>
           <div class="big-type"><span class="letter" style="background:${COLORS[a.p]}">${a.p}</span><div><h1 style="font-size:clamp(1.9rem,6vw,2.6rem)">${tp.name}</h1><p class="muted">${tp.nick}${lang === "en" ? "" : " · " + tp.en}</p></div></div>
           <p>${tp.summary}</p>
           <div class="tags">${tp.keywords.map(w => `<span class="tag">${w}</span>`).join("")}</div>
@@ -420,6 +480,7 @@
   // ---------- routing ----------
   function rerender() {
     if (view === "quiz" && state) renderQuestion();
+    else if (view === "profile" && pendingStart) renderProfile();
     else if (view === "result" && resultView) renderResult(resultView.counts, resultView.shared);
     else renderIntro();
   }
