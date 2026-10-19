@@ -1,5 +1,5 @@
-// Site settings. aiEndpoint is the URL of the Cloudflare Worker in worker/ (see worker/README.md).
-// Leave it empty to hide the AI chat on the result page.
+// Site settings. aiEndpoint is the chat API (functions/api/chat.js on Cloudflare Pages).
+// It only exists on the Cloudflare Pages deployment, so the chat is hidden everywhere else.
 window.DISC_CONFIG = {
-  aiEndpoint: "https://disc-ai.nguyenvuminhtan.workers.dev"
+  aiEndpoint: /\.pages\.dev$/.test(location.hostname) ? "/api/chat" : ""
 };

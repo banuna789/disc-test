@@ -41,10 +41,12 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   // ---------- shared chrome ----------
+  let user = null; // signed-in Google user on the Cloudflare Pages deployment
   function topbar(extra = "") {
     const langs = LANGS.map(l => `<button type="button" data-lang="${l}" aria-pressed="${l === lang}" title="${I18N[l].langName}">${l.toUpperCase()}</button>`).join("");
+    const account = user ? `<div class="account"><span title="${esc(user.email)}">${esc(user.email)}</span><a href="/auth/logout">${t("logout")}</a></div>` : "";
     return `<div class="topbar"><div class="brand"><span class="dots" aria-hidden="true"><i style="background:var(--d)"></i><i style="background:var(--i)"></i><i style="background:var(--c)"></i><i style="background:var(--s)"></i></span>${t("brand")}</div>
-      <div class="top-right">${extra}<div class="langs" role="group" aria-label="Language">${langs}</div></div></div>`;
+      <div class="top-right">${extra}<div class="langs" role="group" aria-label="Language">${langs}</div></div>${account}</div>`;
   }
   function bindTopbar() {
     app.querySelectorAll("[data-lang]").forEach(b => b.onclick = () => setLang(b.dataset.lang));
@@ -385,6 +387,7 @@
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ lang, profile: { counts, primary: a.p, secondary: a.secondaryStrong ? a.s : null }, messages: history })
       });
+      if (res.status === 401) { location.reload(); return; } // session expired: show the login page
       if (res.status === 429) throw new Error("rate");
       if (res.status === 503) throw new Error("quota");
       if (!res.ok || !res.body) throw new Error("http");
@@ -433,4 +436,7 @@
   }
   window.addEventListener("hashchange", () => { if (/^#kq-/.test(location.hash)) { boot(); window.scrollTo(0, 0); } });
   boot();
+  if (CONFIG.aiEndpoint) {
+    fetch("/auth/me").then(r => r.ok ? r.json() : null).then(u => { if (u && u.email) { user = u; rerender(); } }).catch(() => {});
+  }
 })();

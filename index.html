@@ -61,6 +61,9 @@ p { margin: 0; }
 .langs { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); }
 .langs button { font: inherit; font-size: 0.82rem; font-weight: 600; border: 0; background: transparent; color: var(--muted); padding: 4px 10px; border-radius: 999px; cursor: pointer; }
 .langs button[aria-pressed="true"] { background: var(--ink); color: var(--ink-fg); }
+.account { flex-basis: 100%; display: flex; justify-content: flex-end; gap: 10px; font-size: 0.82rem; color: var(--muted); min-width: 0; }
+.account span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account a { color: var(--fg); font-weight: 600; }
 
 .btn { font: inherit; font-weight: 600; cursor: pointer; border-radius: 999px; padding: 12px 22px; border: 1.5px solid var(--ink); background: var(--ink); color: var(--ink-fg); transition: transform .12s ease; text-decoration: none; display: inline-block; }
 .btn:hover { transform: translateY(-1px); }

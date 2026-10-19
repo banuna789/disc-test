@@ -1,84 +1,62 @@
-// Cloudflare Worker: AI coach for the DISC site, running on Cloudflare Workers AI (free daily allocation).
-// No API key needed: the model runs through the Worker's "AI" binding. When the free daily
-// allocation is used up, requests fail until it resets at 00:00 UTC; nothing is ever charged
-// on the Workers Free plan.
+// POST /api/chat: AI coach on Cloudflare Workers AI (free daily allocation, no API key).
+// Runs behind the login middleware, so only signed-in users reach it.
 //
-// Setup (Worker → Settings):
-//   Bindings → Add → Workers AI, variable name: AI
-//   Variables → ALLOWED_ORIGINS (Text): https://banuna789.github.io
-//   Variables → MODEL (Text, optional): another Workers AI text model ID to try
-//
-// The Worker normalizes the model's stream into simple events for the site:
-//   data: {"t":"text chunk"}   ...   data: [DONE]
+// Pages project → Settings → Bindings: Workers AI, variable name AI.
+// Optional variable MODEL: another Workers AI text model ID.
+// Replies stream to the browser as:  data: {"t":"text chunk"}  ...  data: [DONE]
 
 const DEFAULT_MODEL = "@cf/qwen/qwen3-30b-a3b-fp8";
 const MAX_MESSAGES = 12;          // conversation turns sent per request
 const MAX_CHARS = 1500;           // per user message
-const RATE_LIMIT = 20;            // requests per IP ...
-const RATE_WINDOW_MS = 10 * 60e3; // ... per 10 minutes (best effort, per Worker instance)
+const RATE_LIMIT = 20;            // requests per user ...
+const RATE_WINDOW_MS = 10 * 60e3; // ... per 10 minutes (best effort, per instance)
 
 const LANG_NAMES = { vi: "Vietnamese", en: "English", ja: "Japanese" };
 const STYLE_NAMES = { D: "Dominance", I: "Influence", S: "Steadiness", C: "Conscientiousness" };
 const hits = new Map();
 
-export default {
-  async fetch(request, env) {
-    const origin = request.headers.get("Origin") || "";
-    const allowed = (env.ALLOWED_ORIGINS || "").split(",").map(s => s.trim()).filter(Boolean);
-    const originOk = allowed.length === 0 || allowed.includes(origin);
-    const cors = {
-      "Access-Control-Allow-Origin": originOk && origin ? origin : allowed[0] || "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-      "Vary": "Origin"
-    };
-    const json = (body, status) => new Response(JSON.stringify(body), { status, headers: { ...cors, "Content-Type": "application/json" } });
+export async function onRequestPost({ request, env, data }) {
+  const json = (body, status) => Response.json(body, { status });
+  if (!env.AI) return json({ error: "Workers AI binding 'AI' is missing" }, 500);
 
-    if (request.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
-    if (request.method !== "POST") return json({ error: "Use POST" }, 405);
-    if (!originOk) return json({ error: "Origin not allowed" }, 403);
-    if (!env.AI) return json({ error: "Workers AI binding 'AI' is missing" }, 500);
+  const who = (data.user && data.user.email) || request.headers.get("CF-Connecting-IP") || "unknown";
+  const now = Date.now();
+  const recent = (hits.get(who) || []).filter(ts => now - ts < RATE_WINDOW_MS);
+  if (recent.length >= RATE_LIMIT) return json({ error: "rate" }, 429);
+  recent.push(now);
+  hits.set(who, recent);
 
-    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
-    const now = Date.now();
-    const recent = (hits.get(ip) || []).filter(ts => now - ts < RATE_WINDOW_MS);
-    if (recent.length >= RATE_LIMIT) return json({ error: "rate" }, 429);
-    recent.push(now);
-    hits.set(ip, recent);
+  let body;
+  try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
+  const input = validate(body);
+  if (input.error) return json({ error: input.error }, 400);
 
-    let body;
-    try { body = await request.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
-    const input = validate(body);
-    if (input.error) return json({ error: input.error }, 400);
-
-    let modelStream;
-    try {
-      modelStream = await env.AI.run(env.MODEL || DEFAULT_MODEL, {
-        messages: [{ role: "system", content: systemPrompt(input) }, ...input.messages],
-        stream: true,
-        max_tokens: 1200,
-        temperature: 0.7
-      });
-    } catch (e) {
-      const msg = String(e && e.message || e);
-      console.log("Workers AI error:", msg);
-      // 4006 = daily free allocation used up
-      return json({ error: /4006|allocation|neuron/i.test(msg) ? "quota" : "ai" }, /4006|allocation|neuron/i.test(msg) ? 503 : 502);
-    }
-
-    return new Response(normalize(modelStream), {
-      headers: { ...cors, "Content-Type": "text/event-stream", "Cache-Control": "no-cache" }
+  let modelStream;
+  try {
+    modelStream = await env.AI.run(env.MODEL || DEFAULT_MODEL, {
+      messages: [{ role: "system", content: systemPrompt(input) }, ...input.messages],
+      stream: true,
+      max_tokens: 1200,
+      temperature: 0.7
     });
+  } catch (e) {
+    const msg = String((e && e.message) || e);
+    console.log("Workers AI error:", msg);
+    const quota = /4006|allocation|neuron/i.test(msg); // 4006 = daily free allocation used up
+    return json({ error: quota ? "quota" : "ai" }, quota ? 503 : 502);
   }
-};
+
+  return new Response(normalize(modelStream), {
+    headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" }
+  });
+}
 
 // Reads the model's SSE stream (either {response} or OpenAI-style choices[].delta) and re-emits
-// only the visible answer text, dropping any reasoning/"thinking" output.
+// only the visible answer text, dropping any <think>...</think> reasoning.
 function normalize(stream) {
   const enc = new TextEncoder(), dec = new TextDecoder();
   let buf = "", inThink = false, carry = "";
   const send = (ctrl, text) => {
-    // strip <think>...</think> sections that some models put inline
     let s = carry + text, out = "";
     carry = "";
     while (s.length) {
@@ -105,9 +83,9 @@ function normalize(stream) {
       while ((nl = buf.indexOf("\n")) >= 0) {
         const line = buf.slice(0, nl).trim(); buf = buf.slice(nl + 1);
         if (!line.startsWith("data:")) continue;
-        const data = line.slice(5).trim();
-        if (!data || data === "[DONE]") continue;
-        let ev; try { ev = JSON.parse(data); } catch { continue; }
+        const payload = line.slice(5).trim();
+        if (!payload || payload === "[DONE]") continue;
+        let ev; try { ev = JSON.parse(payload); } catch { continue; }
         const text = typeof ev.response === "string" ? ev.response
           : ev.choices && ev.choices[0] && ev.choices[0].delta && typeof ev.choices[0].delta.content === "string" ? ev.choices[0].delta.content
           : "";
