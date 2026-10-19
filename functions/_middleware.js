@@ -13,6 +13,9 @@ export async function onRequest(context) {
   const { request, env, next, data } = context;
   const url = new URL(request.url);
 
+  // Public pages Google requires for the sign-in consent screen
+  if (url.pathname === "/privacy" || url.pathname === "/privacy.html") return next();
+
   if (!env.GOOGLE_CLIENT_ID || !env.SESSION_SECRET) {
     return new Response("Login is not configured: set GOOGLE_CLIENT_ID and SESSION_SECRET in the Pages project settings.", { status: 500 });
   }
@@ -89,7 +92,7 @@ function loginPage(clientId) {
   <div id="g_id_onload" data-client_id="${id}" data-callback="onGoogleSignIn" data-auto_prompt="false"></div>
   <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline" data-size="large" data-text="signin_with"></div>
   <p id="err" role="alert"></p>
-  <p class="langs">Trang chỉ dùng email và tên để nhận diện bạn. · Only your email and name are used to identify you.</p>
+  <p class="langs">Trang chỉ dùng email và tên để nhận diện bạn. · Only your email and name are used to identify you. · <a href="/privacy.html" style="color:inherit">Privacy</a></p>
 </main>
 <script>
   async function onGoogleSignIn(resp) {
